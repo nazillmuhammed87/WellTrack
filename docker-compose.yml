@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build: ./server
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/welltrack
+      - JWT_SECRET=welltrack_jwt_secret_key_change_in_production
+      - ML_SERVICE_URL=http://ml-service:5001
+      - NODE_ENV=development
+    depends_on:
+      - mongodb
+      - ml-service
+
+  ml-service:
+    build: ./ml-service
+    ports:
+      - "5001:5001"
+
+  client:
+    build: ./client
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/api
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:
